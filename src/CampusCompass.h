@@ -2,6 +2,11 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <utility>
+#include <Student.h>
 
 using namespace std;
 
@@ -10,10 +15,10 @@ private:
     // Think about what member variables you need to initialize
     // perhaps some graph representation?
 
-    std::map<int, std::string> locations; // node, name
+    std::map<int, std::map<std::string, std::pair<int, int>>> locations; // node, name
     std::map<int, std::map<int, int>> edges; // origin, to, time
     std::map<std::string, std::vector<std::string>> classes; // class code: [location, start time, end time]
-    std::map<std::string, std::vector<std::string>> students; // name: [id, origin, # of classes, N class codes]
+    std::vector<Student> students; // name: [id, origin, # of classes, N class codes]
     std::map<int, bool> edgeOpen; //if edge toggle is open
 
 public:
@@ -21,6 +26,7 @@ public:
     CampusCompass(); // constructor
 
     bool ParseCSV(const string &edges_filepath, const string &classes_filepath);
+    bool ParseLocationsCSV(const std::string &locationsFilepath);
     bool ParseCommand(const string &command);
 
     template<typename... Classes>

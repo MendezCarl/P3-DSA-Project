@@ -6,12 +6,115 @@ using namespace std;
 
 CampusCompass::CampusCompass() {
     // initialize your object
-}
 
+}
+//make sure to skip the headerline
 bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes_filepath) {
     // return boolean based on whether parsing was successful or not
+    std::ifstream file(edges_filepath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << edges_filepath << std::endl;
+        return false;
+    }
+
+    //edge file
+    std::string line;
+    while (std::getline(file, line)) {
+        std::vector<std::string> row;
+        std::stringstream ss(line);
+        std::string word;
+
+        while (std::getline(ss, word, ',')) {
+            if (!word.empty()) {
+                row.push_back(word);
+            }
+        }
+
+        //iterating through edges file line
+        //[from, to, fromName, toName, time]
+        edges[std::stoi(row[0])][std::stoi(row[1])] = std::stoi(row[4]);
+        // locations[std::stoi(row[0])] = row[2];
+    }
+    file.close();
+
+    //classes file
+    file.open(classes_filepath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << classes_filepath << std::endl;
+        return false;
+    }
+
+    while (std::getline(file, line)) {
+        std::vector<std::string> row;
+        std::stringstream ss(line);
+        std::string word;
+
+        while (std::getline(ss, word, ',')) {
+            if (!word.empty()) {
+                row.push_back(word);
+            }
+        }
+
+        //[classCode, LocationID, startTime, endTime]
+        classes[row[0]] = {row[1], row[2], row[3]};
+    }
+    file.close();
+
     return true;
 }
+
+bool CampusCompass::ParseLocationsCSV(const std::string &locationsFilepath) {
+
+    std::ifstream file(locationsFilepath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << locationsFilepath << std::endl;
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::vector<std::string> row;
+        std::stringstream ss(line);
+        std::string word;
+
+        while (std::getline(ss, word, ',')) {
+            if (!word.empty()) {
+                row.push_back(word);
+            }
+        }
+
+        //[classCode, LocationID, startTime, endTime]
+        classes[row[0]] = {row[1], row[2], row[3]};
+    }
+    file.close();
+    return true;
+}
+
+template<typename... Classes>
+void CampusCompass::insert(std::string studentName, int studentId, int origin, int numOfClasses, Classes... classes) {
+
+    try {
+        Student student;
+        student.createStudent(studentId, studentName, numOfClasses, classes, origin);
+        students.push_back(student);
+
+        std::cout << "successful" << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "unsuccessful" << std::endl;
+    }
+
+}
+
+void CampusCompass::remove(int studentID) {
+    try {
+        for (std::iterator<>) {
+
+        }
+    } catch (const std::exception& e ){
+        std::cout << "unsuccessful" << std::endl;
+    }
+}
+
 
 bool CampusCompass::ParseCommand(const string &command) {
     // do whatever regex you need to parse validity
