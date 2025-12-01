@@ -23,8 +23,7 @@ public:
 
     int getID();
 
-    std::string getFirstName();
-    std::string getLastName();
+    std::string getName();
 
     int getNumOfClasses();
     std::vector<std::string> getClasses();

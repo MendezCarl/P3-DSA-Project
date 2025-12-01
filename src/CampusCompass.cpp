@@ -131,20 +131,42 @@ void CampusCompass::dropClass(int studentID, std::string classCode) {
             }
         }
 
-        //check classes
-        std::vector<std::string> classes = student.getClasses();
-        for (int i = 0; i < classes.size(); i++) {
+        if (student.getNumOfClasses() > 1) {
+            //check classes
+            std::vector<std::string> classes = student.getClasses();
+            for (int i = 0; i < classes.size(); i++) {
 
+            }
+        } else {
+            remove(student.getID());
         }
-    } catch (const std::exception& e )
-    {
+
+    } catch (const std::exception& e ) {
         std::cout << "unsuccessful" << std::endl;
     }
-
-
-
 }
 
+void CampusCompass::replaceClass(int studentID, std::string classCode1, std::string classCode2) {
+    try {
+        //find student
+        Student student;
+        for (int i = 0; i < students.size(); i++) {
+            if (students[i].getID() == studentID) {
+                student = students[i];
+                std::cout << "student exists" << std::endl;
+            }
+        }
+
+        //see if class exists
+        std::vector<std::string> classCodes = student.getClasses();
+        int index;
+        for (int j = 0; j < classCodes.size(); j++) {
+            if (classCodes[i] ==)
+        }
+    } catch (const std::exception& e) {
+        std::cout << "unsuccessful" << std::endl;
+    }
+}
 
 
 bool CampusCompass::ParseCommand(const string &command) {
