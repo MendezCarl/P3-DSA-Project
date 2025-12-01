@@ -8,6 +8,7 @@
 #endif //STUDENT_H
 #include <utility>
 #include <vector>
+#include <string>
 
 class Student {
     int ID;

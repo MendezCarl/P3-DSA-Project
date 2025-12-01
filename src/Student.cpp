@@ -16,9 +16,9 @@ int Student::getID() {
     return ID;
 }
 
-std::string Student::getFirstName() {
-    return name;
-}
+// std::string Student::getFirstName() {
+//     return name;
+// }
 
 int Student::getNumOfClasses() {
     return numOfClasses;
