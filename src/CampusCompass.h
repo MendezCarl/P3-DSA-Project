@@ -19,6 +19,7 @@ private:
     std::map<int, std::map<int, int>> edges; // origin, to, time
     std::map<std::string, std::vector<std::string>> classes; // class code: [location, start time, end time]
     std::vector<Student> students; // name: [id, origin, # of classes, N class codes]
+    //might have to be a map of a pair (from, to) and bool
     std::map<int, bool> edgeOpen; //if edge toggle is open
 
 public:

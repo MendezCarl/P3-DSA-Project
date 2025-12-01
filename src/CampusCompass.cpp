@@ -107,14 +107,43 @@ void CampusCompass::insert(std::string studentName, int studentId, int origin, i
 
 void CampusCompass::remove(int studentID) {
     try {
-        for (std::iterator<>) {
-
+        std::vector<Student>::iterator it = students.begin();
+        while (it != students.end()) {
+            if ((*it).getID() == studentID){
+                it = students.erase(it);
+            }
         }
+        std::cout << "successful" << std::endl;
     } catch (const std::exception& e ){
         std::cout << "unsuccessful" << std::endl;
     }
 }
 
+void CampusCompass::dropClass(int studentID, std::string classCode) {
+    try {
+        //get student
+        Student student;
+        for (int i = 0; i < students.size(); i++) {
+            if (students[i].getID() == studentID)
+            {
+                student = students[i];
+                std::cout << "student exists" << std::endl;
+            }
+        }
+
+        //check classes
+        std::vector<std::string> classes = student.getClasses();
+        for (int i = 0; i < classes.size(); i++) {
+
+        }
+    } catch (const std::exception& e )
+    {
+        std::cout << "unsuccessful" << std::endl;
+    }
+
+
+
+}
 
 bool CampusCompass::ParseCommand(const string &command) {
     // do whatever regex you need to parse validity
