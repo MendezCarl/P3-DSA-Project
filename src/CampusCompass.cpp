@@ -148,23 +148,65 @@ void CampusCompass::dropClass(int studentID, std::string classCode) {
 
 void CampusCompass::replaceClass(int studentID, std::string classCode1, std::string classCode2) {
     try {
+        bool replaced = false;
+
         //find student
         Student student;
-        for (int i = 0; i < students.size(); i++) {
-            if (students[i].getID() == studentID) {
-                student = students[i];
+        for (Student& i : students) {
+            if (i.getID() == studentID) {
+                student = i;
                 std::cout << "student exists" << std::endl;
+            } else {
+                std::cout << "unsuccessful" << std::endl;
+                return;
             }
         }
 
         //see if class exists
         std::vector<std::string> classCodes = student.getClasses();
         int index;
-        for (int j = 0; j < classCodes.size(); j++) {
-            if (classCodes[i] ==)
+        for (std::string& classCode : classCodes) {
+            if (classCode == classCode1) {
+                classCode = classCode2;
+                replaced = true;
+            }
+        }
+
+        if (replaced == true) {
+            std::cout << "successful" << std::endl;
+        } else {
+            std::cout << "unsuccessful" << std::endl;
         }
     } catch (const std::exception& e) {
         std::cout << "unsuccessful" << std::endl;
+    }
+}
+
+//might be done but look over again
+void CampusCompass::removeClass(std::string classCode) {
+    try {
+        int adjustedCounter = 0;
+
+        for (Student& student : students) {
+            std::vector<std::string> classCodes = student.getClasses();
+            for (auto& callCode : classCodes) {
+                if (classCode.empty()) {
+                    std::cout << "Student has no classes :" << student.getName() << std::endl;
+                } else {
+                    if (callCode == classCode) {
+                        classCodes.erase(classCodes.begin());
+                        int numOfClasses = student.getNumOfClasses();
+                        numOfClasses--;
+
+                        adjustedCounter++;
+                    }
+                }
+            }
+        }
+
+        std::cout << "removed class: " << classCode << "from "<< adjustedCounter << "Students." <<std::endl;
+    } catch (const std::exception& e ) {
+        std::cout << "error removing class: " << e.what() << std::endl;
     }
 }
 

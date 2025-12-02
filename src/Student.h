@@ -25,8 +25,8 @@ public:
 
     std::string getName();
 
-    int getNumOfClasses();
-    std::vector<std::string> getClasses();
+    int& getNumOfClasses();
+    std::vector<std::string>& getClasses();
 
     int getResidence();
 };

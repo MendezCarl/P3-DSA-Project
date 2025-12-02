@@ -24,12 +24,14 @@ std::string Student::getName() {
     return name;
 }
 
-int Student::getNumOfClasses() {
+
+
+int& Student::getNumOfClasses() {
     return numOfClasses;
 }
 
 
-std::vector<std::string> Student::getClasses() {
+std::vector<std::string>& Student::getClasses() {
     return classes;
 }
 
