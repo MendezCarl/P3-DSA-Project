@@ -4,37 +4,31 @@
 
 #include "Student.h"
 
-void Student::createStudent(int id, std::string& firstName, int amount, std::vector<std::string>& inputClasses, int origin) {
+Student::Student(int id, std::string name, std::vector<std::string> classes, int residence){
     ID = id;
-    name = firstName;
-    numOfClasses = amount;
-    classes = inputClasses;
-    residence = origin;
+    Name = name;
+    Classes = classes;
+    NumOfClasses = Classes.size();
+    Residence = residence;
 }
 
 int Student::getID() {
     return ID;
 }
 
-// std::string Student::getFirstName() {
-//     return name;
-// }
-
 std::string Student::getName() {
-    return name;
+    return Name;
 }
 
-
-
 int& Student::getNumOfClasses() {
-    return numOfClasses;
+    return NumOfClasses;
 }
 
 
 std::vector<std::string>& Student::getClasses() {
-    return classes;
+    return Classes;
 }
 
 int Student::getResidence() {
-    return residence;
+    return Residence;
 }

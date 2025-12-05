@@ -6,7 +6,11 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
-#include <Student.h>
+
+#include "Student.h"
+#include "Location.h"
+#include "UniClass.h"
+#include "Edge.h"
 
 using namespace std;
 
@@ -15,12 +19,11 @@ private:
     // Think about what member variables you need to initialize
     // perhaps some graph representation?
 
-    std::map<int, std::map<std::string, std::pair<int, int>>> locations; // node, name
-    std::map<int, std::map<int, int>> edges; // origin, to, time
-    std::map<std::string, std::vector<std::string>> classes; // class code: [location, start time, end time]
-    std::vector<Student> students; // name: [id, origin, # of classes, N class codes]
-    //might have to be a map of a pair (from, to) and bool
-    std::map<int, bool> edgeOpen; //if edge toggle is open
+    //adjancey list approach
+    std::map<int, Location> locationByID; // key: id, value: location
+    std::map<std::string, UniClass> classByCode; // key: class name, value: UniClass object
+    std::map<int, Student> students;
+    std::map<int, std::vector<Edge>> adjList; // key: locationID, value: vector<edges>
 
 public:
     // Think about what helper functions you will need in the algorithm

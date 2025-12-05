@@ -1,6 +1,6 @@
 #include "CampusCompass.h"
 
-#include <string>
+#include <random>
 
 using namespace std;
 
@@ -30,10 +30,19 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
             }
         }
 
-        //iterating through edges file line
-        //[from, to, fromName, toName, time]
-        edges[std::stoi(row[0])][std::stoi(row[1])] = std::stoi(row[4]);
-        // locations[std::stoi(row[0])] = row[2];
+        //populate the adj list
+        //LocationID_1, LocationID_2, Name_1, Name_2, Time
+
+        Edge newEdge(std::stoi(row[0]),std::stoi(row[1]),std::stoi(row[4]));
+        if (adjList.count(std::stoi(row[0]))) {
+            adjList[std::stoi(row[0])].push_back(newEdge);
+        } else {
+            std::vector<Edge> list;
+            list.push_back(newEdge);
+            adjList[std::stoi(row[0])] = list;
+        }
+
+
     }
     file.close();
 
@@ -56,7 +65,8 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         }
 
         //[classCode, LocationID, startTime, endTime]
-        classes[row[0]] = {row[1], row[2], row[3]};
+        UniClass newClass(row[0], std::stoi(row[2]), std::stoi(row[3]), std::stoi(row[1]));
+        classByCode[row[0]] = newClass;
     }
     file.close();
 
@@ -83,8 +93,11 @@ bool CampusCompass::ParseLocationsCSV(const std::string &locationsFilepath) {
             }
         }
 
-        //[classCode, LocationID, startTime, endTime]
-        classes[row[0]] = {row[1], row[2], row[3]};
+        //[name, LocationID, lat, lon]
+        if (locationByID.count(std::stoi(row[1])) == 0) {
+            Location newLocation(std::stoi(row[1]), row[0], std::stof(row[2]), std::stof(row[3]));
+            locationByID[std::stoi(row[1])] = newLocation;
+        }
     }
     file.close();
     return true;
@@ -94,9 +107,8 @@ template<typename... Classes>
 void CampusCompass::insert(std::string studentName, int studentId, int origin, int numOfClasses, Classes... classes) {
 
     try {
-        Student student;
-        student.createStudent(studentId, studentName, numOfClasses, classes, origin);
-        students.push_back(student);
+        Student newStudent(studentId, studentName, numOfClasses, classes, origin);
+        students[newStudent.getID()] = newStudent;
 
         std::cout << "successful" << std::endl;
     } catch (const std::exception& e) {
@@ -107,13 +119,11 @@ void CampusCompass::insert(std::string studentName, int studentId, int origin, i
 
 void CampusCompass::remove(int studentID) {
     try {
-        std::vector<Student>::iterator it = students.begin();
-        while (it != students.end()) {
-            if ((*it).getID() == studentID){
-                it = students.erase(it);
-            }
+        if (students.count(studentID) == 1) {
+            students.erase(studentID);
+            std::cout << "successful" << std::endl;
         }
-        std::cout << "successful" << std::endl;
+        std::cout << "unsuccessful" << std::endl;
     } catch (const std::exception& e ){
         std::cout << "unsuccessful" << std::endl;
     }
@@ -121,25 +131,39 @@ void CampusCompass::remove(int studentID) {
 
 void CampusCompass::dropClass(int studentID, std::string classCode) {
     try {
-        //get student
-        Student student;
-        for (int i = 0; i < students.size(); i++) {
-            if (students[i].getID() == studentID)
-            {
-                student = students[i];
-                std::cout << "student exists" << std::endl;
+        //check if class exists
+        if (classByCode.count(classCode) == 1) {
+
+            //checks if student exists
+            int index = 0;
+            for (int i = 0; i < students.size(); i++) {
+                if (students[i].getID() == studentID)
+                {
+                    index = i;
+                    std::cout << "student exists" << std::endl;
+                }
             }
-        }
 
-        if (student.getNumOfClasses() > 1) {
-            //check classes
-            std::vector<std::string> classes = student.getClasses();
-            for (int i = 0; i < classes.size(); i++) {
+            if (students[index].getNumOfClasses() > 1) {
+                //check classes
+                std::vector<std::string>& classes = students[index].getClasses();
+                for (int i = 0; i < classes.size(); i++) {
+                    if (classes[i] == classCode) {
+                        //remove class from student then check again their total class
+                        classes.erase(std::remove(classes.begin(), classes.end(), classCode), classes.end());
+                        students[index].getNumOfClasses()--;
+                    }
 
+                    std::cout << "successful: dropped class for student" << std::endl;
+                }
+            } else {
+                remove(students[index].getID());
+                std::cout << "removed student for have 0 classes" << std::endl;
             }
         } else {
-            remove(student.getID());
+            std::cout << "unsuccessful: class DNE" << std::endl;
         }
+
 
     } catch (const std::exception& e ) {
         std::cout << "unsuccessful" << std::endl;
@@ -151,19 +175,12 @@ void CampusCompass::replaceClass(int studentID, std::string classCode1, std::str
         bool replaced = false;
 
         //find student
-        Student student;
-        for (Student& i : students) {
-            if (i.getID() == studentID) {
-                student = i;
-                std::cout << "student exists" << std::endl;
-            } else {
-                std::cout << "unsuccessful" << std::endl;
-                return;
-            }
+        if (students.count(studentID)) {
+            std::cout << "student found, replacing class" << std::endl;
         }
 
         //see if class exists
-        std::vector<std::string> classCodes = student.getClasses();
+        std::vector<std::string> classCodes = students[studentID].getClasses();
         int index;
         for (std::string& classCode : classCodes) {
             if (classCode == classCode1) {
@@ -183,30 +200,55 @@ void CampusCompass::replaceClass(int studentID, std::string classCode1, std::str
 }
 
 //might be done but look over again
+//remove from classByCode because it should remove from all students
 void CampusCompass::removeClass(std::string classCode) {
     try {
         int adjustedCounter = 0;
 
-        for (Student& student : students) {
-            std::vector<std::string> classCodes = student.getClasses();
-            for (auto& callCode : classCodes) {
-                if (classCode.empty()) {
-                    std::cout << "Student has no classes :" << student.getName() << std::endl;
-                } else {
-                    if (callCode == classCode) {
-                        classCodes.erase(classCodes.begin());
-                        int numOfClasses = student.getNumOfClasses();
-                        numOfClasses--;
+        // for (Student& student : students) {
+        //     std::vector<std::string> classCodes = student.getClasses();
+        //     for (auto& callCode : classCodes) {
+        //         if (classCode.empty()) {
+        //             std::cout << "Student has no classes :" << student.getName() << std::endl;
+        //         } else {
+        //             if (callCode == classCode) {
+        //                 classCodes.erase(classCodes.begin());
+        //                 int numOfClasses = student.getNumOfClasses();
+        //                 numOfClasses--;
+        //
+        //                 adjustedCounter++;
+        //             }
+        //         }
+        //     }
+        // }
 
-                        adjustedCounter++;
-                    }
-                }
+        //first check if it exists
+        if (classByCode.count(classCode) == 1) {
+            //deactivate class
+            classByCode[classCode].updateActivity(false);
+
+            //search through each student removing deactivated class from their list
+            for (auto& student: students) {
+                auto key = student.first;
+                auto value = student.second;
             }
+        } else {
+            std::cout << "unsuccessful" << std::endl;
         }
+
 
         std::cout << "removed class: " << classCode << "from "<< adjustedCounter << "Students." <<std::endl;
     } catch (const std::exception& e ) {
         std::cout << "error removing class: " << e.what() << std::endl;
+    }
+}
+
+template<typename... Edges>
+void CampusCompass::toggleEdgesClosures(int numberOfClosures, Edges... edges) {
+    try {
+
+    } catch (const std::exception& e) {
+
     }
 }
 

@@ -12,14 +12,14 @@
 
 class Student {
     int ID;
-    std::string name;
-    int numOfClasses;
-    std::vector<std::string> classes;
-    int residence;
+    std::string Name;
+    int NumOfClasses;
+    std::vector<std::string> Classes;
+    int Residence;
 
 public:
-    Student();
-    void createStudent(int id, std::string& firstName, int numOfClasses, std::vector<std::string>& classes, int origin);
+    Student(int id, std::string name, std::vector<std::string> classes, int residence);
+    // void createStudent(int id, std::string& firstName, int numOfClasses, std::vector<std::string>& classes, int origin);
 
     int getID();
 
