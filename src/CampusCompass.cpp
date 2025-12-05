@@ -306,7 +306,21 @@ void CampusCompass::isConnected(int origin, int end) {
 }
 
 void CampusCompass::printShortestEdges(int id) {
-    //implement dikjasrtas
+    //shortest walking time from a students residence to each of their classes in the list
+    std::map<int, int> distance; //key: locationID, value: how long to reach location
+
+    //check if studentID exists
+    if (!students.count(id)) {
+        std::cout << "unsuccessful" << std::endl;
+        return;
+    }
+
+    Student s = students[id];
+    distance[s.getID()] = 0; //sets distance to 0
+    const int inf = 1e9;
+
+    //the end would be the student's classes
+
 }
 
 bool CampusCompass::ParseCommand(const string &command) {
