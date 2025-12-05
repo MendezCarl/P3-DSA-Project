@@ -201,7 +201,7 @@ void CampusCompass::replaceClass(int studentID, std::string classCode1, std::str
 
 //might be done but look over again
 //remove from classByCode because it should remove from all students
-void CampusCompass::removeClass(std::string classCode) {
+void CampusCompass::removeClass(const std::string& classCode) {
     try {
         int adjustedCounter = 0;
 
@@ -228,16 +228,21 @@ void CampusCompass::removeClass(std::string classCode) {
             classByCode[classCode].updateActivity(false);
 
             //search through each student removing deactivated class from their list
-            for (auto& student: students) {
-                auto key = student.first;
-                auto value = student.second;
+            for (auto& [key, value]: students) {
+                std::vector<std::string>& studentClasses = value.getClasses();
+                auto it = std::find(studentClasses.begin(), studentClasses.end(), classByCode[classCode].getClassCode());
+
+                if (it != studentClasses.end()) {
+                    studentClasses.erase(it);
+                    value.getNumOfClasses()--;
+                    adjustedCounter++;
+                }
             }
+            std::cout << "removed class: " << classCode << "from "<< adjustedCounter << "Students." <<std::endl;
         } else {
             std::cout << "unsuccessful" << std::endl;
         }
 
-
-        std::cout << "removed class: " << classCode << "from "<< adjustedCounter << "Students." <<std::endl;
     } catch (const std::exception& e ) {
         std::cout << "error removing class: " << e.what() << std::endl;
     }
@@ -246,12 +251,63 @@ void CampusCompass::removeClass(std::string classCode) {
 template<typename... Edges>
 void CampusCompass::toggleEdgesClosures(int numberOfClosures, Edges... edges) {
     try {
+        if (numberOfClosures % 2 == 0) {
+            for (int i = 0; i < edges.size();) {
+                int from = edges[i];
+                int to = edges[i + 1];
+                i+=2;
 
+                for (auto& edge: adjList[from]) {
+                    if (edge.getTo() == to) {
+                       if (edge.isEdgeOpen()) {
+                           edge.closeEdge();
+                       } else {
+                           edge.openEdge();
+                       }
+                    }
+                }
+            }
+            std::cout << "successful" << std::endl;
+        }
+
+        std::cout << "unsuccessful: uneven amount of closures requested" << std::endl;
     } catch (const std::exception& e) {
-
+        std::cout << "unsuccessful" << std::endl;
     }
 }
 
+void CampusCompass::checkEdgeStatus(int origin, int end) {
+    if (adjList.count(origin) == 1) {
+        for (auto& edge: adjList[origin]) {
+            if (edge.getTo() == end) {
+                if (edge.isEdgeOpen()) {
+                    std::cout << "edge is open" << std::endl;
+                    return;
+                }
+            }
+        }
+        std::cout << "edge is closed" << std::endl;
+        return;
+    }
+    std::cout << "edge DNE" << std::endl;
+}
+
+void CampusCompass::isConnected(int origin, int end) {
+    if (adjList.count(origin) == 1) {
+        for (auto& edge: adjList[origin]) {
+            if (edge.getTo() == end) {
+                std::cout << "successful" << std::endl;
+                return;
+            }
+        }
+    }
+
+    std::cout << "unsuccessful" << std::endl;
+}
+
+void CampusCompass::printShortestEdges(int id) {
+    //implement dikjasrtas
+}
 
 bool CampusCompass::ParseCommand(const string &command) {
     // do whatever regex you need to parse validity

@@ -17,6 +17,10 @@ public:
     Edge(int from, int to, int time);
     // void createEdge(int from, int to, std::pair<int, int> time);
 
+    int getFrom();
+    int getTo();
+    int getTime();
+
     void closeEdge();
     void openEdge();
     bool isEdgeOpen();

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
+#include <algorithm>
 
 #include "Student.h"
 #include "Location.h"
@@ -39,7 +40,7 @@ public:
 
     void dropClass(int studentID, std::string classCode); //if student has 0 classes drop them as well
     void replaceClass(int studentID, std::string classCode1, std::string classCode2);
-    void removeClass(std::string classCode); //removes class and prints how many students were removed from the class
+    void removeClass(const std::string& classCode); //removes class and prints how many students were removed from the class
 
     template<typename... Edges>
     void toggleEdgesClosures(int numberOfClosures, Edges... edges); //don't remove edges just turns them off

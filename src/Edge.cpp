@@ -10,6 +10,18 @@ Edge::Edge(int from, int to, int time) {
     Time = time;
 }
 
+int Edge::getFrom() {
+    return From;
+}
+
+int Edge::getTo() {
+    return To;
+}
+
+int Edge::getTime() {
+    return Time;
+}
+
 void Edge::closeEdge() {
     Open = false;
 }
