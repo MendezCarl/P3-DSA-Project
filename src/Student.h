@@ -18,7 +18,7 @@ class Student {
     int Residence;
 
 public:
-    Student(int id, std::string name, std::vector<std::string> classes, int residence);
+    Student(int id, std::string name, int residence, std::vector<std::string> classes);
     // void createStudent(int id, std::string& firstName, int numOfClasses, std::vector<std::string>& classes, int origin);
 
     int getID();

@@ -4,7 +4,7 @@
 
 #include "Student.h"
 
-Student::Student(int id, std::string name, std::vector<std::string> classes, int residence){
+Student::Student(int id, std::string name, int residence, std::vector<std::string> classes){
     ID = id;
     Name = name;
     Classes = classes;

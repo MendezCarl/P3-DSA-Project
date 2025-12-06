@@ -3,9 +3,13 @@
 //
 
 #include "UniClass.h"
-UniClass::UniClass(std::string classCode, int hour, int minute, int locationID) {
+
+#include <sys/proc.h>
+
+UniClass::UniClass(std::string classCode, int hour, int minute,int endHour, int endMinute, int locationID) {
     ClassCode = classCode;
-    Time = std::make_pair(hour, minute);
+    StartTime = std::make_pair(hour, minute);
+    EndTime = std::make_pair(endHour, endMinute);
     LocationID = locationID;
 }
 
@@ -13,10 +17,11 @@ void UniClass::updateLocation(int location) {
     LocationID = location;
 }
 
-void UniClass::updateTime(int hour, int minute) {
-    Time = std::make_pair(hour, minute);
-
+void UniClass::updateTime(int startHour, int startMinute, int endHour, int endMinute) {
+    StartTime = std::make_pair(startHour, startMinute);
+    EndTime = std::make_pair(endHour, endMinute);
 }
+
 
 void UniClass::updateActivity(bool active) {
     Active = active;
@@ -26,12 +31,20 @@ std::string UniClass::getClassCode() {
     return ClassCode;
 }
 
-int UniClass::getHour() {
-    return Time.first;
+int UniClass::getStartHour() {
+    return StartTime.first;
 }
 
-int UniClass::getMinute() {
-    return Time.second;
+int UniClass::getStartMinute() {
+    return StartTime.second;
+}
+
+int UniClass::getEndHour() {
+    return EndTime.first;
+}
+
+int UniClass::getEndMinute() {
+    return EndTime.second;
 }
 
 int UniClass::getLocationID() {
