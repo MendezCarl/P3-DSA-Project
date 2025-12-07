@@ -11,8 +11,8 @@ int main() {
 
         // ingest CSV data
         cout << "Loading CSV files..." << endl;
-        compass.ParseCSV("../data/edges.csv", "../data/classes.csv");
-        compass.ParseLocationsCSV("../data/locations.csv");
+        compass.ParseCSV("./data/edges.csv", "./data/classes.csv");
+        compass.ParseLocationsCSV("./data/locations.csv");
         cout << "CSV files loaded successfully." << endl;
 
         // compass.printAllClasses();
