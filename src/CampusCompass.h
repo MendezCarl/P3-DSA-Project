@@ -22,7 +22,6 @@ using namespace std;
 class CampusCompass {
 private:
     //adjancey list approach
-    std::map<int, Location> locationByID; // key: id, value: location
     std::map<std::string, UniClass> classByCode; // key: class name, value: UniClass object
     std::map<int, Student> students;
     std::map<int, std::vector<Edge>> adjList; // key: locationID, value: vector<edges>
@@ -31,7 +30,6 @@ public:
     CampusCompass(); // constructor
 
     bool ParseCSV(const string &edges_filepath, const string &classes_filepath);
-    bool ParseLocationsCSV(const std::string &locationsFilepath);
     bool ParseCommand(const string &command);
 
     void insert(std::string studentName, int studentId, int origin, int numOfClasses, std::vector<std::string>& classes); //returns successful or unsuccessful
@@ -46,6 +44,7 @@ public:
     void isConnected(int origin, int end); //checks if travel is possible, does not matter if it's open or not
 
     void printShortestEdges(int id); //print shortest time for student to walk from origin to all their classes
+    void printStudentZone(int id);
 
     void printAllClasses();
 };

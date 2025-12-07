@@ -119,52 +119,6 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
     return true;
 }
 
-bool CampusCompass::ParseLocationsCSV(const std::string &locationsFilepath) {
-
-    std::ifstream file(locationsFilepath);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << locationsFilepath << std::endl;
-        return false;
-    }
-
-    std::string line;
-
-    if (!std::getline(file,line)) {
-        return false;
-    }
-
-    while (std::getline(file, line)) {
-        std::vector<std::string> row;
-        std::stringstream ss(line);
-        std::string word;
-
-        while (std::getline(ss, word, ',')) {
-            size_t start = word.find_first_not_of(" \t\r\n");
-            size_t end = word.find_last_not_of(" \t\r\n");
-
-            if (start != std::string::npos && end != std::string::npos) {
-                row.push_back(word.substr(start, end - start + 1));
-            } else if (!word.empty()) {
-                row.push_back(word);
-            } else {
-                row.push_back("");
-            }
-        }
-
-        if (row.size() < 4) {
-            continue;
-        }
-
-        //LocationID,Name,Latitude,Longitude
-        if (locationByID.count(std::stoi(row[0])) == 0) {
-            Location newLocation(std::stoi(row[0]), row[1], std::stof(row[2]), std::stof(row[3]));
-            locationByID.insert({std::stoi(row[0]), newLocation});
-        }
-    }
-    file.close();
-    return true;
-}
-
 void CampusCompass::insert(std::string studentName, int studentId, int origin, int numOfClasses, std::vector<std::string>& classes) {
 
     try {
@@ -172,6 +126,7 @@ void CampusCompass::insert(std::string studentName, int studentId, int origin, i
         students.emplace(newStudent.getID(), newStudent);
 
         std::cout << "successful" << std::endl;
+        return;
     } catch (const std::exception& e) {
         std::cout << "unsuccessful" << std::endl;
     }
@@ -195,14 +150,14 @@ void CampusCompass::dropClass(int studentID, std::string classCode) {
     try {
         //check if class exists
         if (classByCode.count(classCode) == 0) {
-            std::cout << "unsuccessful: class does not exist" << std::endl;
+            std::cout << "unsuccessful" << std::endl;
             return;
         }
 
         //check if student exists
         auto it = students.find(studentID);
         if (students.end() == it) {
-            std::cout << "unsuccessful: student does not exist" << std::endl;
+            std::cout << "unsuccessful" << std::endl;
             return;
         }
 
@@ -211,7 +166,7 @@ void CampusCompass::dropClass(int studentID, std::string classCode) {
 
         auto classIt = std::find(studentClass.begin(), studentClass.end(), classCode);
         if (classIt == studentClass.end()) {
-            std::cout << "unsuccessful: student not enrolled in class" << std::endl;
+            std::cout << "unsuccessful" << std::endl;
             return;
         }
         studentClass.erase(classIt);
@@ -219,6 +174,7 @@ void CampusCompass::dropClass(int studentID, std::string classCode) {
 
         if (studentClass.size() == 0) {
             students.erase(it);
+            std::cout << "successful" << std::endl;
             return;
         }
 
@@ -232,7 +188,7 @@ void CampusCompass::replaceClass(int studentID, std::string classCode1, std::str
     try {
         auto it = students.find(studentID);
         if (it == students.end()) {
-            std::cout << "unsuccessful: student does not exist" << std::endl;
+            std::cout << "unsuccessful" << std::endl;
             return;
         }
 
@@ -266,7 +222,7 @@ void CampusCompass::removeClass(const std::string& classCode) {
         //first check if it exists
         auto it = classByCode.find(classCode);
         if (it == classByCode.end()) {
-            std::cout << "unsuccessful: does not exist" << std::endl;
+            std::cout << "unsuccessful" << std::endl;
             return;
         }
 
@@ -285,7 +241,7 @@ void CampusCompass::removeClass(const std::string& classCode) {
             }
         }
 
-        std::cout << "removed: " << classCode << " # of students: " << adjustedCounter << std::endl;
+        std::cout << adjustedCounter << std::endl;
 
     } catch (const std::exception& e ) {
         std::cout << "error removing class: " << e.what() << std::endl;
@@ -294,7 +250,7 @@ void CampusCompass::removeClass(const std::string& classCode) {
 
 void CampusCompass::toggleEdgesClosures(int numberOfClosures, std::vector<int>& edges) {
     try {
-        if (edges.size() != static_cast<size_t>(numberOfClosures *2)) {
+        if (edges.size() == static_cast<size_t>(numberOfClosures *2)) {
             for (size_t i = 0; i < edges.size();) {
                 int from = edges[i];
                 int to = edges[i + 1];
@@ -323,20 +279,33 @@ void CampusCompass::toggleEdgesClosures(int numberOfClosures, std::vector<int>& 
 }
 
 void CampusCompass::checkEdgeStatus(int origin, int end) {
-    if (adjList.count(origin) == 1) {
-        for (auto& edge: adjList[origin]) {
-            if (edge.getTo() == end) {
-                if (edge.isEdgeOpen()) {
-                    std::cout << "edge is open" << std::endl;
-                    return;
-                } else{
-                    std::cout << "edge is closed" << std::endl;
+    if(adjList.count(origin)){
+        for(auto& edge: adjList[origin]){
+            if(edge.getTo() == end){
+                if(edge.isEdgeOpen()){
+                    std::cout << "open" << std::endl;
+                }else{
+                    std::cout << "closed" << std::endl;
                 }
                 return;
             }
         }
     }
-    std::cout << "edge DNE" << std::endl;
+
+    if (adjList.count(end)){
+        for (auto& edge: adjList[end]){
+            if(edge.getTo() == origin){
+                if(edge.isEdgeOpen()){
+                    std::cout << "open" << std::endl;
+                }else{
+                    std::cout << "closed" << std::endl;
+                }
+                return;
+            }
+        }
+    }
+
+    std::cout << "DNE" << std::endl;
 }
 
 void CampusCompass::isConnected(int origin, int end) {
@@ -396,12 +365,7 @@ void CampusCompass::printShortestEdges(int id) {
     int origin = s.getResidence();
     const int inf = 1e9;
 
-    //set default values for distances
-    for (auto& [locID, loc]: locationByID) {
-        distance[locID] = inf;
-    }
-
-    distance[origin] = 0; //sets distance to 0
+    distance[origin] = 0; //sets origin distance to 0
 
     std::priority_queue<std::pair<int, int>,std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq; // distance(time), node
     pq.push({0, origin});
@@ -410,7 +374,7 @@ void CampusCompass::printShortestEdges(int id) {
         auto [dist, node] = pq.top();
         pq.pop();
 
-        if (distance[node] < dist) {
+        if (distance.count(node) && distance[node] < dist) {
             continue;
         }
 
@@ -424,6 +388,11 @@ void CampusCompass::printShortestEdges(int id) {
 
             int to = edge.getTo();
             int weight = edge.getTime();
+
+            //if not present
+            if (!distance.count(to)) {
+                distance[to] = inf;
+            }
 
             if (distance[node] + weight < distance[to]) {
                 distance[to] = distance[node] + weight;
@@ -454,7 +423,7 @@ void CampusCompass::printShortestEdges(int id) {
         if (distance.count(locID) && distance[locID] != inf) {
             travelTime = distance[locID];
         }
-
+        std::cout << "Name: " << s.getName()<< std::endl;
         std::cout << code << " | Total Time: " << travelTime << std::endl;
     }
 }
@@ -512,7 +481,28 @@ bool CampusCompass::ParseCommand(const std::string &command) {
     std::string word;
 
     while (ss >> word) {
-        input.push_back(word);
+        if(word.front() == '"') {
+            std::string quotedName = word.substr(1);
+            if (quotedName.empty() || quotedName.back() != '"') {
+                std::string nextWord;
+                while (ss >> nextWord) {
+                    quotedName += " " + nextWord;
+                    if (nextWord.back() == '"') {
+                        break;
+                    }
+                }
+            }
+            
+            if (!quotedName.empty() && quotedName.back() == '"') {
+                quotedName.pop_back();
+            }
+            
+            input.push_back(quotedName);
+
+        }else {
+            input.push_back(word);
+        }
+        
     }
 
     if (input.empty()) {
@@ -611,7 +601,7 @@ bool CampusCompass::ParseCommand(const std::string &command) {
     }
 
     //for every 1 closure there requires 2 nodes
-    if (cmd == "toggleEdgesClosures") {
+    if (cmd == "toggleEdgesClosure") {
         if (input.size() < 2) {
             return false;
         }
@@ -683,6 +673,19 @@ bool CampusCompass::ParseCommand(const std::string &command) {
         return true;
     }
 
+    if (cmd == "printStudentZone") {
+        if (input.size() != 2) {
+            return false;
+        }
+        if (!isInteger(input[1])) {
+            return false;
+        }
+        int studentId = std::stoi(input[1]);
+        printStudentZone(studentId);
+        return true;
+
+    }
+
     return false;
 }
 
@@ -692,9 +695,80 @@ void CampusCompass::printAllClasses() {
     std::cout << "Total classes: " << classByCode.size() << std::endl;
     
     for (auto& [code, uniClass] : classByCode) {
-        std::cout << "Class Code: " << code 
-                  << " | LocationID: " << uniClass.getLocationID() 
-                  << std::endl;
+        std::cout << "Class Code: " << code << " | LocationID: " << uniClass.getLocationID() << std::endl;
     }
     std::cout << "============================\n" << std::endl;
+}
+
+//code MST of the edges requried to connect their residences and all their classes locations based on shortestPath
+//prims algorithm: start with smallest edge on the graph, next select the smallest edge that connects a new node to the existing tree
+void CampusCompass::printStudentZone(int id) {
+    std::map<int, int> distance;
+
+    //check if studentID exists
+    auto it = students.find(id);
+    if (it == students.end()) {
+        std::cout << "unsuccessful" << std::endl;
+        return;
+    }
+
+    Student& s = it->second;
+    int origin = s.getResidence();
+    std::vector<std::string> classList = s.getClasses();
+    const int inf = 1e9;
+
+    //adds all locations to set
+    std::set<int> studentPathId;
+    studentPathId.insert(origin);
+    for(auto& classCode: classList){
+        auto it = classByCode.find(classCode);
+        if (it != classByCode.end()){
+            UniClass& c = it->second;
+            studentPathId.insert(c.getLocationID());
+        }
+    }
+
+    //sets all distances to inf
+    for(int dist: studentPathId){
+        distance[dist] = inf;
+    }
+    distance[origin] = 0;
+
+    int totalCost = 0;
+
+    std::priority_queue<std::pair<int, int>,std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
+    std::set<int> inMST; //keeps track of notes in mst
+
+    pq.push({0, origin});
+    while(!pq.empty()){
+        auto [dist, node] = pq.top();
+        pq.pop();
+
+        if(inMST.count(node)){
+            continue;
+        }
+        inMST.insert(node);
+        totalCost += dist;
+
+        if(!adjList.count(node)){
+            continue;
+        }
+
+        //look through neighbors
+        for(auto& edge: adjList[node]){
+            if(!edge.isEdgeOpen()){
+                continue;
+            }
+
+            int to = edge.getTo();
+            int weight = edge.getTime();
+
+            if(studentPathId.count(to) && !inMST.count(to) && weight < distance[to]){
+                distance[to] = weight;
+                pq.push({distance[to], to});
+            }
+
+        }
+    }
+    std::cout << totalCost << std::endl;
 }
