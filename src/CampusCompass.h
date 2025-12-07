@@ -21,9 +21,6 @@ using namespace std;
 
 class CampusCompass {
 private:
-    // Think about what member variables you need to initialize
-    // perhaps some graph representation?
-
     //adjancey list approach
     std::map<int, Location> locationByID; // key: id, value: location
     std::map<std::string, UniClass> classByCode; // key: class name, value: UniClass object
@@ -31,7 +28,6 @@ private:
     std::map<int, std::vector<Edge>> adjList; // key: locationID, value: vector<edges>
 
 public:
-    // Think about what helper functions you will need in the algorithm
     CampusCompass(); // constructor
 
     bool ParseCSV(const string &edges_filepath, const string &classes_filepath);
@@ -50,4 +46,6 @@ public:
     void isConnected(int origin, int end); //checks if travel is possible, does not matter if it's open or not
 
     void printShortestEdges(int id); //print shortest time for student to walk from origin to all their classes
+
+    void printAllClasses();
 };

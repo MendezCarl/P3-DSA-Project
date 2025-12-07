@@ -26,9 +26,6 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         return false;
     }
 
-
-
-    //edge file
     std::string line;
 
     if (!std::getline(edgesFiles,line)) {
@@ -41,8 +38,17 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         std::string word;
 
         while (std::getline(ss, word, ',')) {
-            if (!word.empty()) {
+            size_t start = word.find_first_not_of(" \t\r\n");
+            size_t end = word.find_last_not_of(" \t\r\n");
+
+            //removes whitespace
+            //https://cplusplus.com/reference/string/string/find_first_not_of/
+            if (start != std::string::npos && end != std::string::npos) {
+                row.push_back(word.substr(start, end - start + 1));
+            } else if (!word.empty()) {
                 row.push_back(word);
+            } else {
+                row.push_back("");
             }
         }
 
@@ -50,9 +56,8 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
             continue;
         }
 
-        //populate the adj list
+        
         //LocationID_1, LocationID_2, Name_1, Name_2, Time
-
         Edge newEdge(std::stoi(row[0]),std::stoi(row[1]),std::stoi(row[4]));
         if (adjList.count(std::stoi(row[0]))) {
             adjList[std::stoi(row[0])].push_back(newEdge);
@@ -66,9 +71,7 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
     }
     edgesFiles.close();
 
-    //classes file
     std::ifstream classesFile(classes_filepath);
-    classesFile.open(classes_filepath);
 
     if (!classesFile.is_open()) {
         std::cerr << "Failed to open file: " << classes_filepath << std::endl;
@@ -85,8 +88,17 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         std::string word;
 
         while (std::getline(ss, word, ',')) {
-            if (!word.empty()) {
+            size_t start = word.find_first_not_of(" \t\r\n");
+            size_t end = word.find_last_not_of(" \t\r\n");
+
+            //removes whitespace
+            //https://cplusplus.com/reference/string/string/find_first_not_of/
+            if (start != std::string::npos && end != std::string::npos) {
+                row.push_back(word.substr(start, end - start + 1));
+            } else if (!word.empty()) {
                 row.push_back(word);
+            } else {
+                row.push_back("");
             }
         }
 
@@ -94,12 +106,11 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
             continue;
         }
 
-
-
+        //StartTime = (int hour, int minute)
+        //EndTime = (int hour, int minute)
         std::pair<int, int> startTime = parseTime(row[2]);
         std::pair<int, int> endTime   = parseTime(row[3]);
 
-        // Construct UniClass with separated time components
         UniClass newClass(row[0], startTime.first, startTime.second, endTime.first, endTime.second, std::stoi(row[1]));
         classByCode.insert({row[0], newClass});
     }
@@ -128,8 +139,15 @@ bool CampusCompass::ParseLocationsCSV(const std::string &locationsFilepath) {
         std::string word;
 
         while (std::getline(ss, word, ',')) {
-            if (!word.empty()) {
+            size_t start = word.find_first_not_of(" \t\r\n");
+            size_t end = word.find_last_not_of(" \t\r\n");
+
+            if (start != std::string::npos && end != std::string::npos) {
+                row.push_back(word.substr(start, end - start + 1));
+            } else if (!word.empty()) {
                 row.push_back(word);
+            } else {
+                row.push_back("");
             }
         }
 
@@ -137,10 +155,10 @@ bool CampusCompass::ParseLocationsCSV(const std::string &locationsFilepath) {
             continue;
         }
 
-        //[name, LocationID, lat, lon]
-        if (locationByID.count(std::stoi(row[1])) == 0) {
-            Location newLocation(std::stoi(row[1]), row[0], std::stof(row[2]), std::stof(row[3]));
-            locationByID.insert({std::stoi(row[1]), newLocation});
+        //LocationID,Name,Latitude,Longitude
+        if (locationByID.count(std::stoi(row[0])) == 0) {
+            Location newLocation(std::stoi(row[0]), row[1], std::stof(row[2]), std::stof(row[3]));
+            locationByID.insert({std::stoi(row[0]), newLocation});
         }
     }
     file.close();
@@ -178,23 +196,31 @@ void CampusCompass::dropClass(int studentID, std::string classCode) {
         //check if class exists
         if (classByCode.count(classCode) == 0) {
             std::cout << "unsuccessful: class does not exist" << std::endl;
+            return;
         }
 
         //check if student exists
         auto it = students.find(studentID);
         if (students.end() == it) {
             std::cout << "unsuccessful: student does not exist" << std::endl;
-        }
-
-        Student student = it->second;
-        std::vector<std::string>& studentClass = student.getClasses();
-        if (studentClass.size() == 0) {
-            students.erase(it);
-            std::cout << "successful" << std::endl;
             return;
         }
-        studentClass.erase(std::remove(studentClass.begin(), studentClass.end(), classCode));
+
+        Student& student = it->second;
+        std::vector<std::string>& studentClass = student.getClasses();
+
+        auto classIt = std::find(studentClass.begin(), studentClass.end(), classCode);
+        if (classIt == studentClass.end()) {
+            std::cout << "unsuccessful: student not enrolled in class" << std::endl;
+            return;
+        }
+        studentClass.erase(classIt);
         student.getNumOfClasses()--;
+
+        if (studentClass.size() == 0) {
+            students.erase(it);
+            return;
+        }
 
         std::cout << "successful" << std::endl;
     } catch (const std::exception& e ) {
@@ -207,17 +233,19 @@ void CampusCompass::replaceClass(int studentID, std::string classCode1, std::str
         auto it = students.find(studentID);
         if (it == students.end()) {
             std::cout << "unsuccessful: student does not exist" << std::endl;
+            return;
         }
 
         bool replaced = false;
         Student& student = it->second;
 
         //see if class exists
-        std::vector<std::string> classCodes = student.getClasses();
+        std::vector<std::string>& classCodes = student.getClasses();
         for (std::string& classCode : classCodes) {
             if (classCode == classCode1) {
                 classCode = classCode2;
                 replaced = true;
+                break;
             }
         }
 
@@ -231,8 +259,6 @@ void CampusCompass::replaceClass(int studentID, std::string classCode1, std::str
     }
 }
 
-//might be done but look over again
-//remove from classByCode because it should remove from all students
 void CampusCompass::removeClass(const std::string& classCode) {
     try {
         int adjustedCounter = 0;
@@ -268,8 +294,8 @@ void CampusCompass::removeClass(const std::string& classCode) {
 
 void CampusCompass::toggleEdgesClosures(int numberOfClosures, std::vector<int>& edges) {
     try {
-        if (numberOfClosures == (edges.size()/numberOfClosures)) {
-            for (int i = 0; i < edges.size();) {
+        if (edges.size() != static_cast<size_t>(numberOfClosures *2)) {
+            for (size_t i = 0; i < edges.size();) {
                 int from = edges[i];
                 int to = edges[i + 1];
                 i+=2;
@@ -285,13 +311,12 @@ void CampusCompass::toggleEdgesClosures(int numberOfClosures, std::vector<int>& 
                         } else {
                             edge.openEdge();
                         }
+                        break;
                     }
                 }
             }
-            std::cout << "successful" << std::endl;
         }
-
-        std::cout << "unsuccessful: uneven amount of closures requested" << std::endl;
+        std::cout << "successful" << std::endl;
     } catch (const std::exception& e) {
         std::cout << "unsuccessful" << std::endl;
     }
@@ -304,8 +329,10 @@ void CampusCompass::checkEdgeStatus(int origin, int end) {
                 if (edge.isEdgeOpen()) {
                     std::cout << "edge is open" << std::endl;
                     return;
+                } else{
+                    std::cout << "edge is closed" << std::endl;
                 }
-                std::cout << "edge is closed" << std::endl;
+                return;
             }
         }
     }
@@ -406,6 +433,12 @@ void CampusCompass::printShortestEdges(int id) {
     }
 
     std::vector<std::string> classList = s.getClasses();
+
+    if(classList.empty()) {
+        std::cout << "no classes enrolled" << std::endl;
+        return;
+    }
+
     std::sort(classList.begin(), classList.end());
 
     for (auto& code: classList) {
@@ -440,32 +473,31 @@ bool isInteger(std::string& input) {
     return true;
 }
 
-bool isClassCode(std::string& input) {
-    if (input.size() != 7) {
-        return false;
-    }
+//classcode will always be 7 characters long
+auto isClassCode = [](const std::string& s) -> bool {
+    if (s.size() != 7) return false;
+    for (int i = 0; i < 3; ++i) {
 
-    //checks if the first three characters are letters
-    //From cpp reference https://cplusplus.com/reference/cctype/isalpha/
-    if (!std::isalpha(input[0]) || !std::isalpha(input[1]) || !std::isalpha(input[2])) {
-        return false;
-    }
-
-    for (int i = 3; i < 7 ; i++) {
-        if (!std::isdigit(input[i])) {
+        //checks if the first three characters are letters
+        //From cpp reference https://cplusplus.com/reference/cctype/isalpha/
+        if (!std::isalpha(static_cast<unsigned char>(s[i]))) {
             return false;
         }
     }
-
+    for (int i = 3; i < 7; ++i) {
+        if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
+            return false;
+        }
+    }
     return true;
-}
+};
 
 bool isStudentID(std::string& input) {
     if (input.size() != 8) {
         return false;
     }
 
-    for (int i = 0; i < input.size(); i++) {
+    for (size_t i = 0; i < input.size(); i++) {
         if (!std::isdigit(input[i])) {
             return false;
         }
@@ -486,37 +518,6 @@ bool CampusCompass::ParseCommand(const std::string &command) {
     if (input.empty()) {
         return false;
     }
-
-    auto isInteger = [](const std::string& s) -> bool {
-        if (s.empty()) return false;
-        std::size_t i = 0;
-        if (s[0] == '-' || s[0] == '+') {
-            if (s.size() == 1) return false;
-            i = 1;
-        }
-        for (; i < s.size(); ++i) {
-            if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    auto isClassCode = [](const std::string& s) -> bool {
-        // 3 letters + 4 digits, e.g. COP3530
-        if (s.size() != 7) return false;
-        for (int i = 0; i < 3; ++i) {
-            if (!std::isalpha(static_cast<unsigned char>(s[i]))) {
-                return false;
-            }
-        }
-        for (int i = 3; i < 7; ++i) {
-            if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
-                return false;
-            }
-        }
-        return true;
-    };
 
     const std::string& cmd = input[0];
 
@@ -611,7 +612,6 @@ bool CampusCompass::ParseCommand(const std::string &command) {
 
     //for every 1 closure there requires 2 nodes
     if (cmd == "toggleEdgesClosures") {
-        // Need at least: command + N
         if (input.size() < 2) {
             return false;
         }
@@ -684,4 +684,17 @@ bool CampusCompass::ParseCommand(const std::string &command) {
     }
 
     return false;
+}
+
+//made to check if parsing classes was correct
+void CampusCompass::printAllClasses() {
+    std::cout << "\nList of classes" << std::endl;
+    std::cout << "Total classes: " << classByCode.size() << std::endl;
+    
+    for (auto& [code, uniClass] : classByCode) {
+        std::cout << "Class Code: " << code 
+                  << " | LocationID: " << uniClass.getLocationID() 
+                  << std::endl;
+    }
+    std::cout << "============================\n" << std::endl;
 }

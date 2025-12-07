@@ -4,8 +4,6 @@
 
 #include "UniClass.h"
 
-#include <sys/proc.h>
-
 UniClass::UniClass(std::string classCode, int hour, int minute,int endHour, int endMinute, int locationID) {
     ClassCode = classCode;
     StartTime = std::make_pair(hour, minute);

@@ -1,0 +1,22 @@
+20
+insert Alice 12345678 1 3 COP3530 MAC2311 COP3502
+insert Bob 87654321 2 2 COP3503 MAC2312
+insert Charlie 11111111 3 4 COP3530 COP3502 MAC2311 CDA3101
+insert Diana 22222222 4 1 COT3100
+printShortestEdges 12345678
+printShortestEdges 87654321
+printShortestEdges 11111111
+dropClass 12345678 MAC2311
+printShortestEdges 12345678
+replaceClass 87654321 COP3503 COP3530
+printShortestEdges 87654321
+checkEdgeStatus 1 2
+checkEdgeStatus 1 50
+isConnected 1 6
+isConnected 1 99
+toggleEdgesClosures 2 1 2 3 4
+checkEdgeStatus 1 2
+isConnected 1 2
+removeClass COP3530
+printShortestEdges 12345678
+remove 22222222
